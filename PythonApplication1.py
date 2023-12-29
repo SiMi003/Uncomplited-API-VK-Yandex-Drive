@@ -1,5 +1,8 @@
 ﻿# from urllib.request import Request, urlopen
 # import pyautogui
+# from progress.bar import IncrementalBar
+# from progress.bar import Bar
+from alive_progress import alive_bar
 from token import NUMBER
 from urllib import request
 from urllib.parse import quote, urlencode
@@ -88,7 +91,6 @@ class VKAPI:
         response = requests.get(f'{self.base_url}{self.exact_method}?{urlencode(params)}'
                                 f'&access_token={self.token}&v={self.version}')
         data = response.json()
-        print(data)
         return data
 
     def links_photos(self, numbers_getting = 5):
@@ -168,14 +170,16 @@ class YDAPI:
         URL of each photo are included in the "dict_info" file 
         headers include only OAuth of Yandex Drive
         """
-        for key, value  in self.dict_.items():
-            path_photo = f'{self.folder}/{key}.jpg'
-            url_photo = value[0]
-            params = {'path': path_photo,
-                      'url': url_photo}
-            get_url = f'{self.base_link}/upload?{urlencode(params)}'
-            response = requests.post(get_url, headers = self.__headers__())
-            print(response.status_code)
+        with alive_bar(len(self.dict_)) as bar:
+            for key, value  in self.dict_.items():
+                path_photo = f'{self.folder}/{key}.jpg'
+                url_photo = value[0]
+                params = {'path': path_photo,
+                            'url': url_photo}
+                get_url = f'{self.base_link}/upload?{urlencode(params)}'
+                response = requests.post(get_url, headers = self.__headers__())
+                print(response.status_code)
+                bar()
         return 
 
     # def __json_saving_pc__(self):
