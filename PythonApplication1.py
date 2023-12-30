@@ -73,33 +73,33 @@ class VKAPI:
     https://dev.vk.com/ru/api/api-requests
     """
     base_url = 'https://api.vk.com/method/'
-    exact_method = 'photos.get'
+    exact_methods = ['photos.get', 'photos.getAlbums']
     
     def __init__(self, token_vk, vk_id, version):
         self.id = vk_id
         self.version = version
         self.token = token_vk
         
-    def __get_info_photos__(self):
+    def __get_info_photos__(self, album_id):
         """
         Getting photos from an profile 
         """
-        params = {'owner_id':self.id,
-                  'album_id':'profile',
+        params = {'owner_id': self.id,
+                  'album_id': album_id,
                   'rev':0,
                   'extended':1}
-        response = requests.get(f'{self.base_url}{self.exact_method}?{urlencode(params)}'
+        response = requests.get(f'{self.base_url}{self.exact_methods[0]}?{urlencode(params)}'
                                 f'&access_token={self.token}&v={self.version}')
         data = response.json()
         return data
 
-    def links_photos(self, numbers_getting = 5):
+    def links_photos(self, album_id, numbers_getting):
         """
         Finding a name of 'photo_size' parameter for each photo in the response
         with the aim to find a photo with maximum size (width and height)
         https://dev.vk.com/ru/reference/objects/photo-sizes
         """
-        data = self.__get_info_photos__()
+        data = self.__get_info_photos__(album_id)
         numbers = min(data.get('response', {}).get('count'), numbers_getting)
         info_photos = {}
         for item in data.get('response', {}).get('items'):
@@ -115,6 +115,19 @@ class VKAPI:
                     max_size = size
             info_photos[likes] = [element.get('url'), max_size]       
         return info_photos
+    
+    def __alboms_list__(self):
+        """
+        Getting alboms id from a VK profile 
+        """
+        params = {'owner_id': self.id}
+        response = requests.get(f'{self.base_url}{self.exact_methods[1]}?{urlencode(params)}'
+                                f'&access_token={self.token}&v={self.version}')
+        data = response.json()
+        names_alboms = []
+        for el in data.get('response').get('items'):
+            names_alboms.append(el['title'])
+        return pprint(names_alboms)    
 
 
 class JSONinfo:
@@ -170,8 +183,8 @@ class YDAPI:
         URL of each photo are included in the "dict_info" file 
         headers include only OAuth of Yandex Drive
         """
-        with alive_bar(len(self.dict_)) as bar:
-            for key, value  in self.dict_.items():
+        for key, value  in self.dict_.items():
+            with alive_bar(len(self.dict_)) as bar:
                 path_photo = f'{self.folder}/{key}.jpg'
                 url_photo = value[0]
                 params = {'path': path_photo,
@@ -185,6 +198,8 @@ class YDAPI:
     # def __json_saving_pc__(self):
     #     self.json_
     #     requests.post(..., headers = self.__headers__())
+
+
 
 
 class PCsave: 
@@ -261,7 +276,10 @@ if __name__ == '__main__':
     vk = VKAPI(atributs['VK']['token_vk'],
                atributs['VK']['vk_id'],
                atributs['VK']['version'])
-    dict_info = vk.links_photos()
+    alboms_ids = ['profile', 'wall', 'saved']
+    dict_info = vk.links_photos(album_id = alboms_ids[1], numbers_getting = 20)
+    # Just for checking how it works
+    vk.__alboms_list__()
 
     js = JSONinfo(dict_info,
                   atributs['JSON']['base_path'],
