@@ -1,6 +1,6 @@
-## This script allows to use your VK profile for getting photos and to use your Yandex Drive for downloading last ones 
+# This script allows to use your VK profile for getting photos and to use your Yandex Drive for downloading last ones 
 
-# Instructions for using:
+## Instructions for using:
 1. At the beginning, please, input your VK info and input your VK and Yandex Drive tokens (webpages with tokens should be opened automatically
 3. Please, choose location of photos which you would like to save to your Drive (instruction should be on your desktop)
 4. Now you could see the list of your other VK alboms, it is just for notes. Functions for getting it will be provided later
