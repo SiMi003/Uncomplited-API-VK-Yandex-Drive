@@ -276,6 +276,9 @@ if __name__ == '__main__':
     get_token_yandex()
     
 
+    base_path = input('Please, input your computer path for saving photos:\n')
+    # base_path = 'C:\\Users\\alexa\\OneDrive\\Рабочий стол\\'
+
     # Reading the complited file woth vk user and tokens info
     with open('tokens.txt', 'r') as f:
         lines = f.readlines() 
@@ -287,9 +290,9 @@ if __name__ == '__main__':
     atributs = {'VK':   {'vk_id':vk_id,
                          'version':'5.199',
                          'token_vk':token_vk},
-                'JSON': {'base_path': 'C:\\Users\\alexa\\OneDrive\\Рабочий стол\\',
+                'JSON': {'base_path': base_path,
                          'name_new_folder': 'photos VK'},
-                'PC':   {'base_path': 'C:\\Users\\alexa\\OneDrive\\Рабочий стол\\',
+                'PC':   {'base_path': base_path,
                          'name_new_folder': 'photos VK'},
                 'YD':   {'token_yandex': token_yandex,
                          'name_folder_yandex': 'photos VK'}
