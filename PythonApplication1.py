@@ -33,6 +33,7 @@ def write_client_info():
         f.write(client_id + '\n' + vk_id + '\n')
     return
 
+
 def get_token_vk(client_id):
     """ 
     VK token getting and writing it in the "tokens.txt" file
@@ -176,7 +177,32 @@ class YDAPI:
         responce = requests.put(url_full, headers = self.__headers__())
         print(responce.status_code)
         return 
-
+    
+    def __json_saving__(self):
+        """
+        The function allows to save file in the folder with Python code 
+        """
+        name_json = 'photo discription'
+        with open(f'{name_json}.json', 'w') as file:
+            json.dump(self.json_, file, indent=4)
+        return name_json
+    
+    def __post_json_yandex__(self):
+        """ 
+        The function post the JSON file to the yandex drive to the same folder with photos
+        """
+        name_file = self.__json_saving__()
+        path = f'{self.folder}/{name_file}.json'
+        params = {
+            'path': path}
+        put_url = f'{self.base_link}/upload?{urlencode(params)}'
+        local_path = f'{name_file}.json'
+        with open(local_path, 'rb') as file:
+            files = {'file': (local_path, file)}
+            response = requests.post(put_url, headers=self.__headers__(), files=files)
+        print(response.status_code)
+        return 
+                
     def saving_photos_yandex(self):
         """
         Saving photos by their URL on a Yandex Drive
@@ -188,18 +214,13 @@ class YDAPI:
                 path_photo = f'{self.folder}/{key}.jpg'
                 url_photo = value[0]
                 params = {'path': path_photo,
-                            'url': url_photo}
+                          'url': url_photo}
                 get_url = f'{self.base_link}/upload?{urlencode(params)}'
                 response = requests.post(get_url, headers = self.__headers__())
                 print(response.status_code)
                 bar()
+        self.__post_json_yandex__()
         return 
-
-    # def __json_saving_pc__(self):
-    #     self.json_
-    #     requests.post(..., headers = self.__headers__())
-
-
 
 
 class PCsave: 
@@ -246,13 +267,13 @@ class PCsave:
 
 if __name__ == '__main__':
     
-    # # !!Comment bellow functions after using it ones!!
-    # tokens_folder()
-    # write_client_info()
-    # with open('tokens.txt', 'r') as f:  
-    #     client_id = f.readline().rstrip('\n')
-    # get_token_vk(client_id)
-    # get_token_yandex()
+    # !!Comment bellow functions after using it ones!!
+    tokens_folder()
+    write_client_info()
+    with open('tokens.txt', 'r') as f:  
+        client_id = f.readline().rstrip('\n')
+    get_token_vk(client_id)
+    get_token_yandex()
     
 
     # Reading the complited file woth vk user and tokens info
@@ -277,8 +298,14 @@ if __name__ == '__main__':
                atributs['VK']['vk_id'],
                atributs['VK']['version'])
     alboms_ids = ['profile', 'wall', 'saved']
-    dict_info = vk.links_photos(album_id = alboms_ids[1], numbers_getting = 20)
-    # Just for checking how it works
+    answer = input(f'Please, choose the locate of photos for saving.\n'
+                   f'- Input "0" if you would like to save {alboms_ids[0]} photos.\n'
+                   f'- Input "1" if you would like to save {alboms_ids[1]} photos.\n'
+                   f'- Input "2" if you would like to save {alboms_ids[2]} photos.\n'
+                   f'Your answer:')
+    dict_info = vk.links_photos(album_id = alboms_ids[int(answer)], numbers_getting = 20)
+    # Just for checking how it works, latter I impruve this: 
+    print('the list of your VK alboms:', end = '\n')
     vk.__alboms_list__()
 
     js = JSONinfo(dict_info,
@@ -291,8 +318,8 @@ if __name__ == '__main__':
                    atributs['YD']['token_yandex'],
                    atributs['YD']['name_folder_yandex'])
     yandex.folder_creating_yandex()
-    
     yandex.saving_photos_yandex()
+    
     pc = PCsave(dict_info,
                 json_data,
                 atributs['PC']['base_path'],
