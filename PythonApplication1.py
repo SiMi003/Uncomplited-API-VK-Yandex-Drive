@@ -2,7 +2,8 @@
 # import pyautogui
 # from progress.bar import IncrementalBar
 # from progress.bar import Bar
-from alive_progress import alive_bar
+import configparser
+from tqdm import tqdm
 from token import NUMBER
 from urllib import request
 from urllib.parse import quote, urlencode
@@ -22,21 +23,21 @@ def tokens_folder():
     The function clean the folder with tokens and id
     for writing new informations in this folder
     """
-    with open('tokens.txt', 'w') as f:
+    with open('config.ini', 'w') as f:
         pass
     
     
 def write_client_info():
     client_id = input('Please, input client ID:\n')
     vk_id = input('Please, input ID of your VK page:\n')
-    with open('tokens.txt', 'a') as f:
-        f.write(client_id + '\n' + vk_id + '\n')
+    with open('config.ini', 'a') as f:
+        f.write('[VK]'  + '\n' + 'client_id=' + client_id + '\n' + 'vk_id=' + vk_id + '\n')
     return
 
 
 def get_token_vk(client_id):
     """ 
-    VK token getting and writing it in the "tokens.txt" file
+    VK token getting and writing it in the 'config.ini' file
     """
     oath_base_url = 'https://oauth.vk.com/authorize'
     params = {'client_id':client_id,
@@ -49,24 +50,37 @@ def get_token_vk(client_id):
     # Openning the link in a random browser
     webbrowser.open(oath_url)
     time.sleep(5)
-    input_token = input('Please, input VK token from an opened browser page:\n')
-    with open('tokens.txt', 'a') as f:
-        f.write(input_token + '\n')
+    input_token = input('Please, input VK token from an opened browser page (Note, that you\n' + 
+                        'need to copy only part of the URL after words "access_token="):\n')
+    with open('config.ini', 'a') as f:
+        f.write('token_vk=' + input_token + '\n')
     return
 
 
 def get_token_yandex():
     """ 
-    Yandex token getting and writing it in the "tokens.txt" file
+    Yandex token getting and writing it in the 'config.ini file
     """
     oath_url_yandex = 'https://yandex.ru/dev/disk/poligon/'
     webbrowser.open(oath_url_yandex)
     time.sleep(5)
     input_token = input('Please, input Yandex Drive token from an opened browser page:\n')
-    with open('tokens.txt', 'a') as f:
-        f.write(input_token + '\n')
+    with open('config.ini', 'a') as f:
+        f.write('[Yandex Drive]'  + '\n' + 'token_yandex=' + input_token + '\n')
     return
 
+def write_pc_path():
+    """
+    Function save an input path on your PC, 
+    IF you need to save photos not only into Yandex Drive
+    """
+    agreement = input('Please, input "yes", if you would like to save photos to your PC:\n')
+    with open('config.ini', 'a') as f:
+        f.write('[PC]'  + '\n' + 'agreement=' + agreement + '\n')
+        if agreement == "yes":
+            path_pc = input('Please, input path for saving photos into the PC:\n')
+            f.write('path_pc=' + path_pc + '\n')
+    return
 
 class VKAPI:
     """
@@ -136,8 +150,7 @@ class JSONinfo:
     Creating json file with data about photo in below format: 
     [{"file_name": "34.jpg", "size": "z"}]
     """
-    def __init__(self, dict_info, base_path, name_folder):
-        self.base_path = base_path
+    def __init__(self, dict_info, name_folder):
         self.folder = name_folder
         self.information_dict = dict_info
         
@@ -210,15 +223,15 @@ class YDAPI:
         headers include only OAuth of Yandex Drive
         """
         for key, value  in self.dict_.items():
-            with alive_bar(len(self.dict_)) as bar:
-                path_photo = f'{self.folder}/{key}.jpg'
-                url_photo = value[0]
-                params = {'path': path_photo,
-                          'url': url_photo}
-                get_url = f'{self.base_link}/upload?{urlencode(params)}'
-                response = requests.post(get_url, headers = self.__headers__())
-                print(response.status_code)
-                bar()
+            path_photo = f'{self.folder}/{key}.jpg'
+            url_photo = value[0]
+            params = {'path': path_photo,
+                        'url': url_photo}
+            get_url = f'{self.base_link}/upload?{urlencode(params)}'
+            response = requests.post(get_url, headers = self.__headers__())
+            print(response.status_code)
+            for i in tqdm(range(10)):
+                pass
         self.__post_json_yandex__()
         return 
 
@@ -267,52 +280,49 @@ class PCsave:
 
 if __name__ == '__main__':
     
-    # !!Comment bellow functions after using it ones!!
-    tokens_folder()
-    write_client_info()
-    with open('tokens.txt', 'r') as f:  
-        client_id = f.readline().rstrip('\n')
-    get_token_vk(client_id)
-    get_token_yandex()
-    
-
-    base_path = input('Please, input your computer path for saving photos:\n')
-    # base_path = 'C:\\Users\\alexa\\OneDrive\\Рабочий стол\\'
+    # # !!Comment bellow functions after using it ones!!
+    # tokens_folder()
+    # write_client_info()
+    # config = configparser.ConfigParser()
+    # config.read('config.ini')  
+    # client_id = config["VK"]["client_id"]
+    # get_token_vk(client_id)
+    # get_token_yandex()
+    # write_pc_path()
 
     # Reading the complited file woth vk user and tokens info
-    with open('tokens.txt', 'r') as f:
-        lines = f.readlines() 
-        vk_id = lines[1].rstrip('\n')
-        token_vk = lines[2].rstrip('\n')
-        token_yandex = lines[3].rstrip('\n')
+    config = configparser.ConfigParser()
+    config.read('config.ini') 
+    vk_id = config["VK"]["vk_id"]
+    token_vk = config["VK"]["token_vk"]
+    token_yandex = config["Yandex Drive"]["token_yandex"]
+    agreement = config["PC"]["agreement"]
 
-     
-    atributs = {'VK':   {'vk_id':vk_id,
-                         'version':'5.199',
-                         'token_vk':token_vk},
-                'JSON': {'base_path': base_path,
-                         'name_new_folder': 'photos VK'},
-                'PC':   {'base_path': base_path,
-                         'name_new_folder': 'photos VK'},
-                'YD':   {'token_yandex': token_yandex,
-                         'name_folder_yandex': 'photos VK'}
-                }     
-    vk = VKAPI(atributs['VK']['token_vk'],
-               atributs['VK']['vk_id'],
-               atributs['VK']['version'])
     alboms_ids = ['profile', 'wall', 'saved']
     answer = input(f'Please, choose the locate of photos for saving.\n'
                    f'- Input "0" if you would like to save {alboms_ids[0]} photos.\n'
                    f'- Input "1" if you would like to save {alboms_ids[1]} photos.\n'
                    f'- Input "2" if you would like to save {alboms_ids[2]} photos.\n'
                    f'Your answer:')
+    
+    atributs = {'VK':   {'vk_id':vk_id,
+                         'version':'5.199',
+                         'token_vk':token_vk},
+                'JSON': {'name_new_folder': 'photos VK'},
+                'YD':   {'token_yandex': token_yandex,
+                         'name_folder_yandex': 'photos VK'}
+                }
+    
+    vk = VKAPI(atributs['VK']['token_vk'],
+               atributs['VK']['vk_id'],
+               atributs['VK']['version'])
     dict_info = vk.links_photos(album_id = alboms_ids[int(answer)], numbers_getting = 20)
-    # Just for checking how it works, latter I impruve this: 
-    print('the list of your VK alboms:', end = '\n')
-    vk.__alboms_list__()
+    
+    # # Just for checking how it works, latter I impruve this: 
+    # print('the list of your VK alboms:', end = '\n')
+    # vk.__alboms_list__()
 
     js = JSONinfo(dict_info,
-                  atributs['JSON']['base_path'],
                   atributs['JSON']['name_new_folder'])
     json_data = js.json_writing()
 
@@ -323,14 +333,15 @@ if __name__ == '__main__':
     yandex.folder_creating_yandex()
     yandex.saving_photos_yandex()
     
-    pc = PCsave(dict_info,
-                json_data,
-                atributs['PC']['base_path'],
-                atributs['PC']['name_new_folder'])
-    pc.folder_creating()
-    pc.saving_photos()
-
-
+    if agreement == "yes":
+        base_path = config["PC"]["path_pc"]
+        name_new_folder = 'photos VK'
+        pc = PCsave(dict_info,
+                    json_data,
+                    atributs['PC']['base_path'],
+                    atributs['PC']['name_new_folder'])
+        pc.folder_creating()
+        pc.saving_photos()
 
 
 
