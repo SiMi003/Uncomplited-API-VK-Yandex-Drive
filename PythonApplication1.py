@@ -203,17 +203,25 @@ class YDAPI:
     def __post_json_yandex__(self):
         """ 
         The function post the JSON file to the yandex drive to the same folder with photos
+        base_link = https://cloud-api.yandex.net/v1/disk/resources/upload
+        Response example:
+        {
+          "href": "https://uploader1d.dst.yandex.net:443/upload-target/...",
+          "method": "PUT",
+          "templated": false
+        }
         """
         name_file = self.__json_saving__()
         path = f'{self.folder}/{name_file}.json'
         params = {
             'path': path}
-        put_url = f'{self.base_link}/upload?{urlencode(params)}'
-        local_path = f'{name_file}.json'
-        with open(local_path, 'rb') as file:
-            files = {'file': (local_path, file)}
-            response = requests.post(put_url, headers=self.__headers__(), files=files)
-        print(response.status_code)
+        base_link = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
+        get_url = f'{self.base_link}/upload?{urlencode(params)}'
+        response_get = requests.get(get_url, headers=self.__headers__())
+        print(response_get.status_code)
+        put_url = response_get.json().get("href")
+        response_put = requests.put(put_url)
+        print(response_put.status_code)
         return 
                 
     def saving_photos_yandex(self):
@@ -222,19 +230,21 @@ class YDAPI:
         URL of each photo are included in the "dict_info" file 
         headers include only OAuth of Yandex Drive
         """
-        for key, value  in self.dict_.items():
-            path_photo = f'{self.folder}/{key}.jpg'
-            url_photo = value[0]
-            params = {'path': path_photo,
-                        'url': url_photo}
-            get_url = f'{self.base_link}/upload?{urlencode(params)}'
-            response = requests.post(get_url, headers = self.__headers__())
-            print(response.status_code)
-            for i in tqdm(range(10)):
-                pass
-        self.__post_json_yandex__()
+        # Using tqdm to create a progress bar
+        with tqdm(total=len(self.dict_), desc="Processing items", unit="item") as pbar:
+            for key, value  in self.dict_.items():
+                path_photo = f'{self.folder}/{key}.jpg'
+                url_photo = value[0]
+                params = {'path': path_photo,
+                            'url': url_photo}
+                get_url = f'{self.base_link}/upload?{urlencode(params)}'
+                response = requests.post(get_url, headers = self.__headers__())
+                print(response.status_code)
+                # Update the progress bar
+                pbar.update(1)
+            self.__post_json_yandex__()
         return 
-
+    
 
 class PCsave: 
     """
