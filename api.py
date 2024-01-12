@@ -1,9 +1,5 @@
-#import configparser
 from tqdm import tqdm
-#from token import NUMBER
-#from urllib import request
 from urllib.parse import quote, urlencode
-#import webbrowser
 import pyperclip
 import time
 import requests 
