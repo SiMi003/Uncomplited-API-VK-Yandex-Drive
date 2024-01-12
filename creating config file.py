@@ -1,4 +1,3 @@
-
 import configparser
 from urllib.parse import urlencode
 import webbrowser
@@ -13,14 +12,12 @@ def tokens_folder():
     with open('config.ini', 'w') as f:
         pass
     
-    
 def write_client_info():
     client_id = input('Please, input client ID:\n')
     vk_id = input('Please, input ID of your VK page:\n')
     with open('config.ini', 'a') as f:
         f.write('[VK]'  + '\n' + 'client_id=' + client_id + '\n' + 'vk_id=' + vk_id + '\n')
     return
-
 
 def get_token_vk(client_id):
     """ 
@@ -42,7 +39,6 @@ def get_token_vk(client_id):
     with open('config.ini', 'a') as f:
         f.write('token_vk=' + input_token + '\n')
     return
-
 
 def get_token_yandex():
     """ 
@@ -70,9 +66,8 @@ def write_pc_path():
     return
 
 
+
 if __name__ == '__main__':
-    
-    # !!Comment bellow functions after using it ones!!
     tokens_folder()
     write_client_info()
     config = configparser.ConfigParser()
