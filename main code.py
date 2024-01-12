@@ -1,20 +1,18 @@
 ﻿import configparser
 from tqdm import tqdm
-#from token import NUMBER
-#from urllib import request
 from urllib.parse import quote, urlencode
-#import webbrowser
 import pyperclip
 import time
 import requests 
 from pprint import pprint
-from PIL import Image
-from io import BytesIO
 import os
 import json
 
-
-import module3
+# Import spetial created libraries 
+form api import VKAPI
+form api import JSONinfo
+form api import YDAPI
+form localsaving import PCsave
 
 
 if __name__ == '__main__':
